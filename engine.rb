@@ -12,9 +12,9 @@ module CleverBotComments
         spin_up
     end
 
-    # Our long-running thread
     def spin_up
 
+      # Our long-running thread
       Thread.new do
         while true
 
@@ -25,11 +25,9 @@ module CleverBotComments
             puts "image id: #{image['id']}"
 
             comment = get_best_comment image
-            puts comment
-            puts "comment id: #{comment['id']}"
 
             if comment
-              puts "Comment:  #{comment['comment']}"
+              puts "Comment: #{comment['id']} :: #{comment['comment']}"
               response = @cleverbot.write comment['comment']
 
               puts "Response: #{response}"
@@ -64,6 +62,7 @@ module CleverBotComments
         return false
       end
 
+      # filter out comments already commented on
       comments.each do |comment|
         unless @past_posts.include? comment['id']
           return comment
