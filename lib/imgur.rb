@@ -1,8 +1,3 @@
-require 'yaml'
-require 'logger'
-require 'rest-client'
-require 'net/https'
-
 require_relative 'imgur/base'
 
 class Imgur < ImgurBase
