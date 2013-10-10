@@ -1,3 +1,7 @@
+NOTE: Although I could not find any rules about bots on imgur (either in the terms of service OR the API), I am willing to bet this could get a user banned, and is definitely a bit shady.
+
+===============
+
 Simple Command Line ruby script to respond to comments on imgur using cleverbot responses.
 
 =============================
