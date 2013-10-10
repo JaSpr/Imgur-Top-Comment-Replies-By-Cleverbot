@@ -5,7 +5,7 @@ require 'net/https'
 
 class Imgur
 
-  CONFIG_PATH = '~/.imgurrc'
+  CONFIG_PATH = '~/.imgurrc.comments'
   attr_accessor :url, :path, :parser, :logger, :config, :authorize_path, :token_path
 
   def initialize(options={})
@@ -42,8 +42,52 @@ class Imgur
   end
 
   def get_latest_viral_images
-    uri  = URI("#{@url}3/gallery/hot/time/0?showViral=true")
+    _get_from_imgur URI("#{@url}3/gallery/hot/time/0?showViral=true")
+  end
 
+  def get_best_comments (image)
+    _get_from_imgur URI("#{@url}3/gallery/image/#{image['id']}/comments/best")
+  end
+
+  def submit_comment(id, comment)
+    uri  = URI("#{@url}3/comment")
+    data = {
+        :image_id => id,
+        :comment => comment
+    }
+    _post_to_imgur uri, data
+  end
+
+  def submit_response(image_id, comment_id, reply)
+    uri = URI("#{@url}3/gallery/#{image_id}/comment/#{comment_id}")
+    data = {
+        :image_id => image_id,
+        :comment  => reply
+    }
+    _post_to_imgur uri, data
+  end
+
+  private
+
+  # @param [URI] uri
+  # @param [Hash] data
+  def _post_to_imgur(uri, data)
+    http = _generate_http_object uri
+
+    refresh_token
+
+    request = Net::HTTP::Post.new uri
+    request.add_field('Authorization', "Bearer #{@config[:access_token]}")
+
+    request.form_data = data
+
+    response = _submit_request http, request
+
+    _handle_response response
+  end
+
+  # @param [URI] uri
+  def _get_from_imgur(uri)
     http = _generate_http_object uri
 
     request = Net::HTTP::Get.new uri
@@ -53,64 +97,6 @@ class Imgur
 
     _handle_response response
   end
-
-  def get_best_comments (image)
-  uri  = URI("#{@url}3/gallery/image/#{image['id']}/comments/best")
-
-  http = _generate_http_object uri
-
-  request = Net::HTTP::Get.new uri
-  request.add_field('Authorization', "Client-ID #{@config[:client_id]}")
-
-
-  response = _submit_request http, request
-
-  _handle_response response
-  end
-
-  def submit_comment(id, comment)
-    uri  = URI("#{@url}3/comment")
-
-    http = _generate_http_object uri
-
-    refresh_token
-
-    request = Net::HTTP::Post.new uri
-    request.add_field('Authorization', "Bearer #{@config[:access_token]}")
-
-    request.form_data = {
-        :image_id => id,
-        :comment => comment
-    }
-
-    response = _submit_request http, request
-
-    _handle_response response
-  end
-
-  def submit_response(image_id, comment_id, reply)
-    uri = URI("#{@url}3/gallery/#{image_id}/comment/#{comment_id}")
-
-    http = _generate_http_object uri
-
-    refresh_token
-
-    request = Net::HTTP::Post.new uri
-    request.add_field('Authorization', "Bearer #{@config[:access_token]}")
-
-    puts @config[:access_token].to_s
-
-    request.form_data = {
-        :image_id => image_id,
-        :comment  => reply
-    }
-
-    response = _submit_request http, request
-
-    _handle_response response
-  end
-
-  private
 
   # @param [Object] uri
   # @return [Net::HTTP]

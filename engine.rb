@@ -25,6 +25,7 @@ module CleverBotComments
             puts "image id: #{image['id']}"
 
             comment = get_best_comment image
+            puts comment
             puts "comment id: #{comment['id']}"
 
             if comment
