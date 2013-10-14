@@ -26,7 +26,8 @@ module CleverBotComments
 
             puts "image id: #{image.id}"
 
-            comment = image.comments.first
+            comments = image.comments
+            comment = get_latest_unused_comment comments
 
             if comment
               puts "Comment: #{comment.id} :: #{comment.comment}"
@@ -44,7 +45,7 @@ module CleverBotComments
           end
 
           @past_posts.push image.id
-          @past_posts.push comment.id
+          @past_posts.push comment.id if comment
 
           # Randomize your wait time between posts so as not to arouse suspicion!
           delay = rand(180...600)
@@ -57,5 +58,15 @@ module CleverBotComments
       end
     end
 
+    def get_latest_unused_comment(comments)
+      comments.each do |comment|
+        unless @past_posts.include? comment.id
+          return comment
+        end
+      end
+    end
+
   end
+
+
 end
