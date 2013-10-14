@@ -1,11 +1,12 @@
-require_relative 'lib/imgur'
+#require_relative 'lib/imgur'
 require_relative 'lib/cleverbot'
+require 'imgur'
 
 module CleverBotComments
   class Engine
 
     def initialize
-        @imgur = Imgur.new
+        @imgur = Imgur::Client.new
         @cleverbot = Cleverbot::Client.new
         @past_posts = []
 
@@ -20,21 +21,21 @@ module CleverBotComments
 
           begin
             puts 'fetching images...'
-            image = get_new_image
+            image = @imgur.images.all(resource: 'gallery', section: 'hot', sort: 'time', page: 0).first
 
-            puts "image id: #{image['id']}"
+            puts "image id: #{image.id}"
 
-            comment = get_best_comment image
+            comment = image.comments.first
 
             if comment
-              puts "Comment: #{comment['id']} :: #{comment['comment']}"
-              response = @cleverbot.write comment['comment']
+              puts "Comment: #{comment.id} :: #{comment.comment}"
+              response = @cleverbot.write comment.comment
 
               puts "Response: #{response}"
               if response.length > 0
-                  puts @imgur.submit_response image['id'], comment['id'], response
+                  reply = comment.reply response
+                  puts reply.id
               end
-              puts ''
             end
           rescue => e
             puts "EXCEPTION: #{e.message}"
@@ -45,41 +46,15 @@ module CleverBotComments
           @past_posts.push comment['id']
 
           # Randomize your wait time between posts so as not to arouse suspicion!
-          sleep_time = rand(180...600)
+          delay = rand(180...600)
 
-          puts "sleeping for #{sleep_time} seconds..."
+          puts "sleeping for #{delay} seconds..."
           puts ''
 
-          sleep sleep_time || rand(180...600)
+          sleep delay || rand(180...600)
         end
       end
     end
 
-    def get_best_comment(image)
-      comments = @imgur.get_best_comments image
-
-      if comments.eql? false
-        return false
-      end
-
-      # filter out comments already commented on
-      comments.each do |comment|
-        unless @past_posts.include? comment['id']
-          return comment
-        end
-      end
-
-      false
-    end
-
-    def get_new_image
-      images = @imgur.get_latest_viral_images
-
-      if images.eql? false
-          return false
-      end
-
-      images.first
-    end
   end
 end
