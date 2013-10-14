@@ -6,7 +6,7 @@ module CleverBotComments
   class Engine
 
     def initialize
-        @imgur = Imgur::Client.new
+        @imgur = Imgur::Client.new({config_path: '~/.imgurrc.comments'})
         @cleverbot = Cleverbot::Client.new
         @past_posts = []
 
@@ -21,6 +21,7 @@ module CleverBotComments
 
           begin
             puts 'fetching images...'
+            @imgur.refresh_token
             image = @imgur.images.all(resource: 'gallery', section: 'hot', sort: 'time', page: 0).first
 
             puts "image id: #{image.id}"
@@ -42,8 +43,8 @@ module CleverBotComments
             puts e.backtrace
           end
 
-          @past_posts.push image['id']
-          @past_posts.push comment['id']
+          @past_posts.push image.id
+          @past_posts.push comment.id
 
           # Randomize your wait time between posts so as not to arouse suspicion!
           delay = rand(180...600)
